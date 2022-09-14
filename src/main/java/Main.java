@@ -1,63 +1,28 @@
-import java.util.*;
-
 public class Main {
+    public static void main(String[] args) {
 
-    private static final int sizeString = 25;
+        ThreadGroup threadGroup = new ThreadGroup("ThreadGroup");
 
-    public static void main(String[] args) throws InterruptedException {
-        String[] texts = new String[sizeString];
-        List<Thread> threads = new ArrayList<>(sizeString);
+        Thread thread1 = new MyThread(threadGroup, "1 thread.");
+        Thread thread2 = new MyThread(threadGroup, "2 thread.");
+        Thread thread3 = new MyThread(threadGroup, "3 thread.");
+        Thread thread4 = new MyThread(threadGroup, "4 thread.");
 
-        for (int i = 0; i < texts.length; i++) {
-            texts[i] = generateText("aab", 30_000);
+        System.out.println("Создаю потоки...");
+        startThreads(thread1, thread2, thread3, thread4);
+
+        try {
+            Thread.sleep(3500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-
-        long startTs = System.currentTimeMillis(); // start time
-        processingString(texts, threads);
-
-        long endTs = System.currentTimeMillis(); // end time
-        System.out.println("Time: " + (endTs - startTs) + "ms");
+        threadGroup.interrupt();
     }
 
-    private static String generateText(String letters, int length) {
-        Random random = new Random();
-        StringBuilder text = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            text.append(letters.charAt(random.nextInt(letters.length())));
-        }
-        return text.toString();
-    }
-
-    private static void processingString(String[] texts, List<Thread> threads) throws InterruptedException {
-        for (String text : texts) {
-            Runnable logic = () -> {
-                int maxSize = 0;
-                for (int i = 0; i < text.length(); i++) {
-                    for (int j = 0; j < text.length(); j++) {
-                        if (i >= j) {
-                            continue;
-                        }
-                        boolean bFound = false;
-                        for (int k = i; k < j; k++) {
-                            if (text.charAt(k) == 'b') {
-                                bFound = true;
-                                break;
-                            }
-                        }
-                        if (!bFound && maxSize < j - i) {
-                            maxSize = j - i;
-                        }
-                    }
-                }
-                System.out.println(text.substring(0, 100) + " -> " + maxSize);
-            };
-            Thread thread = new Thread(logic);
-            threads.add(thread);
-            thread.start();
-        }
-
+    private static void startThreads(Thread... threads) {
         for (Thread thread : threads) {
-            thread.join(); // зависаем, ждём когда поток объект которого лежит в thread завершится
+            thread.start();
         }
     }
 }
+
